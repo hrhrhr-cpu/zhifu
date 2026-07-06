@@ -1,12 +1,74 @@
 import { User } from "@supabase/supabase-js";
+import { unstable_noStore } from "next/cache";
 import { DashboardClient } from "./index";
+import { createServerSupabaseClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
-// 页面从全局对象中获取数据
-export default function Dashboard() {
-  // 从服务器端获取数据
-  const user = (global as any).__dashboardUser as User;
-  const subscriptionInfo = (global as any).__subscriptionInfo;
+export const dynamic = "force-dynamic";
 
-  // 传递给客户端组件
-  return <DashboardClient user={user} subscriptionInfo={subscriptionInfo} />;
+async function getSubscriptionInfo(userId: string) {
+  unstable_noStore();
+  const supabase = createServerSupabaseClient();
+  const now = new Date();
+
+  const { data: rows, error } = await supabase
+    .from("alipay_transactions")
+    .select("status, is_subscription, subscription_period, subscription_end, product_id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("获取订阅信息失败:", error);
+  }
+
+  const validSubscriptions = (rows || []).filter(
+    (r) =>
+      r.status === "success" &&
+      r.subscription_end &&
+      (r.is_subscription ||
+        r.product_id?.includes("monthly") ||
+        r.product_id?.includes("yearly"))
+  );
+
+  if (validSubscriptions.length > 0) {
+    const latest = validSubscriptions.reduce((max, r) =>
+      new Date(r.subscription_end!) > new Date(max.subscription_end!)
+        ? r
+        : max
+    );
+    return {
+      isActive: new Date(latest.subscription_end!) > now,
+      type:
+        latest.subscription_period === "yearly"
+          ? "年付影视会员"
+          : "月付影视会员",
+      endDate: latest.subscription_end!,
+    };
+  }
+
+  return {
+    isActive: false,
+    type: "",
+    endDate: "",
+  };
+}
+
+export default async function Dashboard() {
+  const supabase = createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/signin?redirect=/dashboard");
+  }
+
+  const subscriptionInfo = await getSubscriptionInfo(user.id);
+
+  return (
+    <DashboardClient
+      user={user as User}
+      subscriptionInfo={subscriptionInfo}
+    />
+  );
 }

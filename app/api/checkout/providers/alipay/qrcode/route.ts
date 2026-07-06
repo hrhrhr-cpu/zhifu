@@ -4,7 +4,6 @@ import {
   createServerSupabaseClient,
 } from "@/utils/supabase/server";
 import { createAlipaySdk, ALIPAY_CONFIG, generateOrderNumber, execWithRetry } from "@/utils/alipay";
-import { addMonths, addYears } from "date-fns";
 
 interface QrcodeRequest {
   productId: string;
@@ -59,38 +58,9 @@ export async function POST(request: NextRequest) {
     }
 
     const adminClient = createServerAdminClient();
-    const now = new Date();
     const out_trade_no = generateOrderNumber();
 
-    // 3. 订阅模式：计算 subscription_start / subscription_end
-    let subscriptionStart: Date | null = null;
-    let subscriptionEnd: Date | null = null;
-
-    if (isSubscription) {
-      const { data: activeSubscriptions } = await adminClient
-        .from("alipay_transactions")
-        .select("subscription_end")
-        .eq("user_id", userId)
-        .eq("status", "success")
-        .eq("is_subscription", true)
-        .gt("subscription_end", now.toISOString())
-        .order("subscription_end", { ascending: false })
-        .limit(1);
-
-      if (activeSubscriptions && activeSubscriptions.length > 0) {
-        subscriptionStart = new Date(activeSubscriptions[0].subscription_end);
-      } else {
-        subscriptionStart = now;
-      }
-
-      if (subscriptionPeriod === "monthly") {
-        subscriptionEnd = addMonths(subscriptionStart, 1);
-      } else if (subscriptionPeriod === "yearly") {
-        subscriptionEnd = addYears(subscriptionStart, 1);
-      }
-    }
-
-    // 4. 先写入待支付记录
+    // 3. 先写入待支付记录（订阅起止时间等支付成功后再计算写入）
     const { data: transaction, error: insertError } = await adminClient
       .from("alipay_transactions")
       .insert({
@@ -102,8 +72,8 @@ export async function POST(request: NextRequest) {
         status: "pending",
         is_subscription: isSubscription,
         subscription_period: subscriptionPeriod || null,
-        subscription_start: subscriptionStart ? subscriptionStart.toISOString() : null,
-        subscription_end: subscriptionEnd ? subscriptionEnd.toISOString() : null,
+        subscription_start: null,
+        subscription_end: null,
         metadata: {
           product_name: productName,
           subscription_period: subscriptionPeriod,

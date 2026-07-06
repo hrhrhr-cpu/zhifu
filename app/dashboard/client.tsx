@@ -18,6 +18,7 @@ interface DashboardClientProps {
 export default function DashboardClient({ user, subscriptionInfo }: DashboardClientProps) {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [subscription, setSubscription] = useState(subscriptionInfo);
   const supabase = createClient();
 
   // 如果props中的user为undefined，尝试从客户端获取用户
@@ -44,6 +45,57 @@ export default function DashboardClient({ user, subscriptionInfo }: DashboardCli
 
     getUserFromClient();
   }, [user, supabase]);
+
+  // 客户端再查一次最新订阅，避免服务端缓存导致显示旧数据
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const fetchLatestSubscription = async () => {
+      const now = new Date();
+      const { data: rows, error } = await supabase
+        .from("alipay_transactions")
+        .select("status, is_subscription, subscription_period, subscription_end, product_id")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("客户端获取订阅信息失败:", error);
+        return;
+      }
+
+      console.log("订阅原始数据:", rows);
+
+      const validSubscriptions = (rows || []).filter(
+        (r) =>
+          r.status === "success" &&
+          r.subscription_end &&
+          (r.is_subscription ||
+            r.product_id?.includes("monthly") ||
+            r.product_id?.includes("yearly"))
+      );
+
+      console.log("有效订阅:", validSubscriptions);
+
+      if (validSubscriptions.length > 0) {
+        const latest = validSubscriptions.reduce((max, r) =>
+          new Date(r.subscription_end!) > new Date(max.subscription_end!)
+            ? r
+            : max
+        );
+        setSubscription({
+          isActive: new Date(latest.subscription_end!) > now,
+          type:
+            latest.subscription_period === "yearly"
+              ? "年付影视会员"
+              : "月付影视会员",
+          endDate: latest.subscription_end!,
+        });
+      } else {
+        setSubscription({ isActive: false, type: "", endDate: "" });
+      }
+    };
+
+    fetchLatestSubscription();
+  }, [currentUser, supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -88,27 +140,31 @@ export default function DashboardClient({ user, subscriptionInfo }: DashboardCli
             <p className="text-gray-600 mb-2">
               <span className="font-medium">邮箱:</span> {currentUser.email}
             </p>
-            {subscriptionInfo && (
+            {subscription && (
               <div className="mt-2 text-gray-600">
                 <p className="mb-1">
+                  <span className="font-medium">客户类型:</span>{" "}
+                  {subscription.isActive
+                    ? subscription.type
+                    : "普通用户"}
+                </p>
+                <p className="mb-1">
                   <span className="font-medium">订阅状态:</span>{" "}
-                  {subscriptionInfo.isActive ? (
+                  {subscription.isActive ? (
                     <span className="text-green-600">订阅中</span>
                   ) : (
                     <span className="text-gray-500">未订阅</span>
                   )}
                 </p>
-                {subscriptionInfo.isActive && (
-                  <>
-                    <p className="mb-1">
-                      <span className="font-medium">订阅类型:</span>{" "}
-                      {subscriptionInfo.type}
-                    </p>
-                    <p className="mb-1">
-                      <span className="font-medium">到期时间:</span>{" "}
-                      {new Date(subscriptionInfo.endDate).toLocaleDateString()}
-                    </p>
-                  </>
+                {subscription.isActive ? (
+                  <p className="mb-1">
+                    <span className="font-medium">到期时间:</span>{" "}
+                    {new Date(subscription.endDate).toLocaleDateString()}
+                  </p>
+                ) : (
+                  <p className="mb-1">
+                    <span className="font-medium">到期时间:</span>{" "}-
+                  </p>
                 )}
               </div>
             )}

@@ -39,51 +39,6 @@ export default async function DashboardLayout({
     redirect("/signin?redirect=/dashboard");
   }
 
-  // 获取用户的订阅信息
-  let subscriptionInfo = null;
-
-  try {
-    // 查询用户有效的订阅
-    const now = new Date();
-    const { data: subscriptions, error } = await supabase
-      .from("alipay_transactions")
-      .select("subscription_period, subscription_end")
-      .eq("user_id", user.id)
-      .eq("status", "success")
-      .eq("is_subscription", true)
-      .lte("subscription_start", now.toISOString())
-      .gt("subscription_end", now.toISOString())
-      .order("subscription_end", { ascending: false })
-      .limit(1);
-
-    if (error) {
-      console.error("获取订阅信息失败:", error);
-    }
-
-    if (subscriptions && subscriptions.length > 0) {
-      const subscription = subscriptions[0];
-      subscriptionInfo = {
-        isActive: true,
-        type: subscription.subscription_period === "yearly"
-          ? "年付影视会员"
-          : "月付影视会员",
-        endDate: subscription.subscription_end,
-      };
-    } else {
-      subscriptionInfo = {
-        isActive: false,
-        type: "",
-        endDate: "",
-      };
-    }
-  } catch (error) {
-    console.error("获取订阅信息时出错:", error);
-  }
-
-  // 将用户数据和订阅信息放到全局对象供页面组件使用
-  (global as any).__dashboardUser = user;
-  (global as any).__subscriptionInfo = subscriptionInfo;
-
   return (
     <section className="relative">
       {/* 顶部导航栏 */}

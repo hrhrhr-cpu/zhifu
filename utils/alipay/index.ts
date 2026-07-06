@@ -1,4 +1,6 @@
 import { AlipaySdk } from "alipay-sdk";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { addMonths, addYears } from "date-fns";
 
 export function formatKey(
   key: string,
@@ -81,6 +83,33 @@ export function generateOrderNumber(): string {
 // 金额转分，避免浮点误差
 export function toCents(value: string | number): number {
   return Math.round(parseFloat(String(value)) * 100);
+}
+
+// 根据当前已有有效订阅，计算新订阅的起止时间（续期或新开）
+export async function computeSubscriptionDates(
+  adminClient: SupabaseClient<any, "public", any>,
+  userId: string,
+  period: "monthly" | "yearly"
+): Promise<{ start: string; end: string }> {
+  const now = new Date();
+
+  const { data: activeSubscriptions } = await adminClient
+    .from("alipay_transactions")
+    .select("subscription_end")
+    .eq("user_id", userId)
+    .eq("status", "success")
+    .eq("is_subscription", true)
+    .gt("subscription_end", now.toISOString())
+    .order("subscription_end", { ascending: false })
+    .limit(1);
+
+  const start = activeSubscriptions?.[0]?.subscription_end
+    ? new Date(activeSubscriptions[0].subscription_end)
+    : now;
+
+  const end = period === "monthly" ? addMonths(start, 1) : addYears(start, 1);
+
+  return { start: start.toISOString(), end: end.toISOString() };
 }
 
 // 支付宝沙箱网关不太稳定，对超时/504 等网络错误做重试

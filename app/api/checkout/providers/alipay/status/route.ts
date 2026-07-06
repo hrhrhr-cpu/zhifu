@@ -3,7 +3,7 @@ import {
   createServerAdminClient,
   createServerSupabaseClient,
 } from "@/utils/supabase/server";
-import { createAlipaySdk, toCents, execWithRetry } from "@/utils/alipay";
+import { createAlipaySdk, toCents, execWithRetry, computeSubscriptionDates } from "@/utils/alipay";
 
 export async function GET(request: NextRequest) {
   try {
@@ -70,14 +70,33 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      const updateData: Record<string, unknown> = {
+        status: "success",
+        trade_no: result.tradeNo,
+        buyer_logon_id: result.buyerLogonId,
+        paid_at: new Date().toISOString(),
+      };
+
+      // 订阅订单：支付成功时才计算起止时间，并自动续期
+      if (
+        transaction.is_subscription &&
+        transaction.subscription_period &&
+        (transaction.subscription_period === "monthly" ||
+          transaction.subscription_period === "yearly") &&
+        !transaction.subscription_start
+      ) {
+        const { start, end } = await computeSubscriptionDates(
+          adminClient,
+          session.user.id,
+          transaction.subscription_period
+        );
+        updateData.subscription_start = start;
+        updateData.subscription_end = end;
+      }
+
       const { error: updateError } = await adminClient
         .from("alipay_transactions")
-        .update({
-          status: "success",
-          trade_no: result.tradeNo,
-          buyer_logon_id: result.buyerLogonId,
-          paid_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", transaction.id)
         .eq("status", "pending");
 
@@ -96,6 +115,8 @@ export async function GET(request: NextRequest) {
           status: "success",
           trade_no: result.tradeNo,
           buyer_logon_id: result.buyerLogonId,
+          subscription_start: updateData.subscription_start ?? transaction.subscription_start,
+          subscription_end: updateData.subscription_end ?? transaction.subscription_end,
         },
       });
     }

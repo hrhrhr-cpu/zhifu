@@ -25,7 +25,7 @@ const products: Record<string, Product> = {
     name: "基础观影包",
     title: "基础版",
     description: "解锁部分热门影片，体验高清观影服务。",
-    price: "10",
+    price: "1",
     priceLabel: "/一次性",
     isSubscription: false,
     features: [
@@ -40,7 +40,7 @@ const products: Record<string, Product> = {
     name: "影视会员（月付）",
     title: "专业版",
     description: "解锁全站影片，畅享 1080P 高清无广告观影体验。",
-    price: "100",
+    price: "10",
     priceLabel: "/月",
     isSubscription: true,
     subscriptionPeriod: "monthly",

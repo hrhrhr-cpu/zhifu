@@ -54,12 +54,12 @@ export default function Hero() {
                 data-aos-delay="300"
               >
                 <div>
-                  <button
-                    type="button"
-                    className="btn text-white bg-blue-500 hover:bg-blue-600 w-full shadow-sm"
+                  <a
+                    href="#pricing"
+                    className="btn text-white bg-blue-500 hover:bg-blue-600 w-full shadow-sm inline-flex items-center justify-center"
                   >
                     立即开通会员
-                  </button>
+                  </a>
                 </div>
                 {/* <div>
                   <Link

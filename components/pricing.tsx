@@ -209,7 +209,7 @@ export default function Pricing() {
   const proProduct = annual ? products["pro-yearly"] : products["pro-monthly"];
 
   return (
-    <section className="relative border-t border-gray-100">
+    <section id="pricing" className="relative border-t border-gray-100">
       <div
         className="absolute top-0 left-0 right-0 bg-gradient-to-b from-gray-50 to-white h-1/2 pointer-events-none -z-10"
         aria-hidden="true"

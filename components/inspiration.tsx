@@ -197,7 +197,7 @@ export default function Inspiration() {
                 <div className="flex h-full items-end justify-center">
                   <Link
                     className="btn text-white bg-blue-500 hover:bg-blue-600 shadow-sm mb-6"
-                    href="/signup"
+                    href="/#pricing"
                   >
                     开通会员畅看
                   </Link>

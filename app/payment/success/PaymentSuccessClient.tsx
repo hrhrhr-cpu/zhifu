@@ -147,7 +147,7 @@ export default function PaymentSuccessClient() {
 
     if (period === 'yearly') return '年付订阅';
     if (period === 'monthly') return '月付订阅';
-    return null;
+    return '一次性购买';
   };
 
   return (
@@ -206,7 +206,7 @@ export default function PaymentSuccessClient() {
                       </div>
                       {getSubscriptionLabel(transaction) && (
                         <div>
-                          <p className="text-sm text-gray-500">订阅类型</p>
+                          <p className="text-sm text-gray-500">购买类型</p>
                           <p>{getSubscriptionLabel(transaction)}</p>
                         </div>
                       )}

@@ -17,7 +17,17 @@
       "Bash(curl -s http://localhost:3000/api/checkout/providers/alipay/test)",
       "Bash(python -m json.tool)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
-      "Bash(curl -i http://localhost:3000/api/checkout/providers/alipay/test)"
+      "Bash(curl -i http://localhost:3000/api/checkout/providers/alipay/test)",
+      "Read(//c/Users/72862/**)",
+      "Read(//c/Users/72862/.claude/**)",
+      "Bash(echo \"$HOME/.vscode/extensions\" && ls -la \"$HOME/.vscode/extensions\" 2>/dev/null | grep -i claude || echo \"未找到 claude 相关扩展目录\")",
+      "Read(//c/Users/72862/.vscode/extensions/**)",
+      "Bash(ls -la \"$HOME/.claude/\" 2>/dev/null || echo \"目录不存在\")",
+      "Read(//c/Users/72862/.local/bin/**)",
+      "Read(//c/Users/72862/AppData/Local/Programs/**)",
+      "Read(//c/Users/72862/AppData/Roaming/npm/**)",
+      "Bash('C:\\\\Users\\\\72862/AppData/Roaming/npm/claude' --version)",
+      "Bash('C:\\\\Users\\\\72862/AppData/Roaming/npm/claude' --help)"
     ]
   }
 }

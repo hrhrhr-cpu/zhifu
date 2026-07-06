@@ -35,7 +35,7 @@ export default function Cta() {
               <div className="shrink-0">
                 <Link
                   className="btn text-white bg-blue-600 hover:bg-blue-700 w-full shadow-sm"
-                  href="/signup"
+                  href="/#pricing"
                 >
                   立即开通会员
                 </Link>

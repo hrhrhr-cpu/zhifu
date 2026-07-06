@@ -52,6 +52,12 @@ export default function Header({ nav = true }: { nav?: boolean }) {
     }, 100);
   };
 
+  // 处理导航到会员开通区域
+  const handleMembershipClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push('/#pricing');
+  };
+
   return (
     <header className="absolute w-full z-30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -121,6 +127,7 @@ export default function Header({ nav = true }: { nav?: boolean }) {
                       <button
                         type="button"
                         className="btn-sm text-white bg-blue-600 hover:bg-blue-700 w-full shadow-sm"
+                        onClick={handleMembershipClick}
                       >
                         开通会员
                       </button>

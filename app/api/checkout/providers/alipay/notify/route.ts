@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { createServerAdminClient } from "@/utils/supabase/server";
-import { createAlipaySdk, toCents } from "@/utils/alipay";
+import { createAlipaySdk, toCents, computeSubscriptionDates } from "@/utils/alipay";
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,15 +59,34 @@ export async function POST(request: NextRequest) {
     }
 
     // 7. 更新订单状态（带 pending 条件防止并发重复处理）
+    const updateData: Record<string, unknown> = {
+      status: "success",
+      trade_no: trade_no || null,
+      buyer_logon_id: buyer_logon_id || null,
+      paid_at: new Date().toISOString(),
+      notify_count: transaction.notify_count + 1,
+    };
+
+    // 订阅订单：支付成功时才计算起止时间，并自动续期
+    if (
+      transaction.is_subscription &&
+      transaction.subscription_period &&
+      (transaction.subscription_period === "monthly" ||
+        transaction.subscription_period === "yearly") &&
+      !transaction.subscription_start
+    ) {
+      const { start, end } = await computeSubscriptionDates(
+        adminClient,
+        transaction.user_id,
+        transaction.subscription_period
+      );
+      updateData.subscription_start = start;
+      updateData.subscription_end = end;
+    }
+
     const { error: updateError } = await adminClient
       .from("alipay_transactions")
-      .update({
-        status: "success",
-        trade_no: trade_no || null,
-        buyer_logon_id: buyer_logon_id || null,
-        paid_at: new Date().toISOString(),
-        notify_count: transaction.notify_count + 1,
-      })
+      .update(updateData)
       .eq("id", transaction.id)
       .eq("status", "pending");
 
