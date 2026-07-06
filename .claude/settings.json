@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(curl -s --max-time 15 \"https://zpayz.cn/api.php?act=balance&pid=20220726190052&key=BeyK9E9O7n1bwdWj0WCzWpwhmZJPjc2u\")",
+      "Bash(curl -s --max-time 15 \"https://zpayz.cn/api.php?act=balance&pid=20220726190052&key=vg9ZRZN4FOKtDM06UfqH69GDJoG4gUJ\")",
+      "Bash(curl -s --max-time 15 \"https://z-pay.cn/api.php?act=balance&pid=20220726190052&key=vg9ZRZN4FOKtDM06UfqH69GDJoG4gUJ\")",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c \"print\\('ok'\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(curl -s --max-time 15 -X POST \"https://zpayz.cn/api.php?act=balance&pid=20220726190052&key=BeyK9E9O7n1bwdWj0WCzWpwhmZJPjc2u\")",
+      "Bash(curl -s --max-time 15 \"https://zpayz.cn/api.php?act=balance&pid=2026070520434297&key=xEND7097UMVQwAVSjsYM4DuQPD2LprBZ\")",
+      "Bash(npm install *)",
+      "Bash(node -e \"const AlipaySdk = require\\('alipay-sdk'\\); console.log\\(typeof AlipaySdk, Object.keys\\(AlipaySdk\\)\\);\")",
+      "Bash(node -e \"const qrcode = require\\('qrcode/react'\\); console.log\\(Object.keys\\(qrcode\\)\\);\")",
+      "Bash(node -e \"const pkg = require\\('qrcode.react/package.json'\\); console.log\\(pkg.main, pkg.module, pkg.exports\\);\")",
+      "Bash(curl -s http://localhost:3000/api/checkout/providers/alipay/test)",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl -i http://localhost:3000/api/checkout/providers/alipay/test)"
+    ]
+  }
+}
