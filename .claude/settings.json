@@ -27,7 +27,11 @@
       "Read(//c/Users/72862/AppData/Local/Programs/**)",
       "Read(//c/Users/72862/AppData/Roaming/npm/**)",
       "Bash('C:\\\\Users\\\\72862/AppData/Roaming/npm/claude' --version)",
-      "Bash('C:\\\\Users\\\\72862/AppData/Roaming/npm/claude' --help)"
+      "Bash('C:\\\\Users\\\\72862/AppData/Roaming/npm/claude' --help)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix: update pnpm-lock.yaml to match package.json *)"
     ]
   }
 }
